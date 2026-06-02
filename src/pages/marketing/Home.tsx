@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Appointment } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
+import CustomSelect from '../../components/CustomSelect';
 
 interface AppointmentFormInputs {
   fullName: string;
@@ -27,7 +28,7 @@ export default function Home() {
   const { user } = useSelector((state: RootState) => state.auth);
   
   // React Hook Form for seamless input validation
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<AppointmentFormInputs>();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<AppointmentFormInputs>();
 
   const [faqOpenIdx, setFaqOpenIdx] = useState<number | null>(0);
   const [galleryIdx, setGalleryIdx] = useState<number>(0);
@@ -522,17 +523,19 @@ export default function Home() {
                 <label className="block text-xs uppercase tracking-wider font-semibold text-emerald-950 mb-1.5">
                   Select Treatment
                 </label>
-                <select
-                  id="book-treatment"
-                  {...register("treatment", { required: true })}
-                  className="block w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-900 focus:border-emerald-900 bg-gray-50/50 text-emerald-950 font-medium"
-                >
-                  <option value="Consultation">General Consultation & Diagnostic Scan</option>
-                  <option value="Smile Designing">Interactive Smile Designing Prophies</option>
-                  <option value="Implants">Dental Implants (Titanium Cores)</option>
-                  <option value="Cosmetic">Cosmetic Assessment & Veneers</option>
-                  <option value="Root Canal">Painless Single-Sitting Root Canal</option>
-                </select>
+                <input type="hidden" {...register("treatment", { required: true })} />
+                <CustomSelect
+                  value={watch("treatment") || ""}
+                  onChange={(val) => setValue("treatment", val, { shouldValidate: true })}
+                  placeholder="Choose treatment type..."
+                  options={[
+                    { value: "Consultation", label: "General Consultation & Diagnostic Scan" },
+                    { value: "Smile Designing", label: "Interactive Smile Designing Prophies" },
+                    { value: "Implants", label: "Dental Implants (Titanium Cores)" },
+                    { value: "Cosmetic", label: "Cosmetic Assessment & Veneers" },
+                    { value: "Root Canal", label: "Painless Single-Sitting Root Canal" }
+                  ]}
+                />
               </div>
 
               {/* Message block */}
