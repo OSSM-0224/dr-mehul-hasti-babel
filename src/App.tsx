@@ -23,6 +23,14 @@ import Dashboard from './pages/patient/Dashboard';
 import Appointments from './pages/patient/Appointments';
 import Records from './pages/patient/Records';
 
+// Admin Page Imports
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminAppointments from './pages/admin/AdminAppointments';
+import AdminPatients from './pages/admin/AdminPatients';
+import AdminBilling from './pages/admin/AdminBilling';
+
+
 function MainLayout() {
   const dispatch = useDispatch();
   const activePath = useSelector((state: RootState) => state.ui.activePath);
@@ -51,6 +59,16 @@ function MainLayout() {
         return <Appointments />;
       case 'patient/records':
         return <Records />;
+      case 'admin/login':
+        return <AdminLogin />;
+      case 'admin/dashboard':
+        return <AdminDashboard />;
+      case 'admin/appointments':
+        return <AdminAppointments />;
+      case 'admin/patients':
+        return <AdminPatients />;
+      case 'admin/billing':
+        return <AdminBilling />;
       default:
         return <Home />;
     }

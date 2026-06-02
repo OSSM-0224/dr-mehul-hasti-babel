@@ -9,7 +9,8 @@ import { useForm } from 'react-hook-form';
 import { RootState, addLocalAppointment, setPath, showToast } from '../../store';
 import { 
   Sparkles, Calendar, ArrowRight, ShieldCheck, CheckCircle2, 
-  Smile, Activity, Stethoscope, ChevronDown, ChevronUp, Clock, Phone, Mail, ChevronLeft, ChevronRight
+  Smile, Activity, Stethoscope, ChevronDown, ChevronUp, Clock, Phone, Mail, ChevronLeft, ChevronRight,
+  MapPin
 } from 'lucide-react';
 import { Appointment } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -41,7 +42,7 @@ export default function Home() {
     {
       title: 'Consult Lounge Room',
       url: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1000&auto=format&fit=crop&q=80',
-      desc: 'Modern consultancy lounges with high-floor window views overlooking Lower Parel, Mumbai.'
+      desc: 'Modern consultancy lounges with high-floor window views overlooking Mankhurd (W), Mumbai.'
     },
     {
       title: 'Serene Reception Foyer',
@@ -213,7 +214,7 @@ export default function Home() {
                 referrerPolicy="no-referrer"
               />
               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-emerald-950/90 via-emerald-950/30 to-transparent p-6 text-white text-left">
-                <span className="text-2xl stats-number font-semibold text-amber-500">15+</span>
+                <span className="text-2xl font-serif font-semibold text-amber-500">15+</span>
                 <p className="text-xs font-mono text-gray-300 uppercase tracking-widest leading-normal">
                   Years of clinical excellence in Mumbai
                 </p>
@@ -235,13 +236,13 @@ export default function Home() {
             {/* Metrics cards */}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-5 rounded-2xl bg-emerald-50/50 border border-emerald-950/5 text-left">
-                <span className="block text-2xl stats-number font-black text-emerald-950">5000+</span>
+                <span className="block text-2xl font-serif font-black text-emerald-950">5000+</span>
                 <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 font-bold">
                   Happy Smiles Created
                 </span>
               </div>
               <div className="p-5 rounded-2xl bg-emerald-50/50 border border-emerald-950/5 text-left">
-                <span className="block text-2xl stats-number font-black text-emerald-950">4</span>
+                <span className="block text-2xl font-serif font-black text-emerald-950">4</span>
                 <span className="text-[10px] font-mono uppercase tracking-wider text-amber-800 font-bold">
                   Advanced Beds & Rooms
                 </span>
@@ -564,7 +565,103 @@ export default function Home() {
       </section>
 
 
-      {/* 6. A SPACE DESIGNED FOR SERENITY (GALLERY CAROUSEL) */}
+      {/* 5.5 CLINIC LOCATION & HOURS (REAL GOOGLE MAPS) */}
+      <section id="contact-location" className="py-24 px-4 md:px-8 bg-gradient-to-b from-white to-[#FAF9F5] border-t border-b border-gray-100">
+        <div className="max-w-7xl mx-auto space-y-12">
+          
+          <div className="text-center max-w-2xl mx-auto space-y-4">
+            <span className="text-[10px] uppercase tracking-widest font-mono text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded inline-block">
+              Clinic Location
+            </span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-light tracking-tight text-emerald-950">
+              Visit Our Boutique <span className="font-normal italic text-amber-800">Studio</span>
+            </h2>
+            <p className="text-gray-500 text-xs sm:text-sm leading-relaxed font-light">
+              We are conveniently located in Mankhurd (W), Mumbai. Step into a safe, calm, and state-of-the-art clinic.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* Real Google Map Container - Responsive, Rounded, Premium */}
+            <div className="lg:col-span-8 rounded-3xl overflow-hidden shadow-xl border border-gray-100 min-h-[350px] sm:min-h-[420px] relative group bg-[#FAF9F5]">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d120681.16804000596!2d72.931934!3d19.051137!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c73d9deb1b17%3A0xcabc7277a44a4c94!2sUNIQUE%20DENTAL%20CARE!5e0!3m2!1sen!2sin!4v1780401355164!5m2!1sen!2sin"
+                width="100%"
+                height="100%"
+                style={{ border: 0, minHeight: '400px' }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full hover:filter-none transition-all duration-500"
+                title="Unique Dental Care Clinic Location Map"
+              ></iframe>
+            </div>
+
+            {/* Clinic details card */}
+            <div className="lg:col-span-4 bg-white p-8 md:p-10 rounded-3xl border border-gray-100 flex flex-col justify-between text-left space-y-8 shadow-sm">
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="font-serif text-2xl font-bold text-emerald-950">Unique Dental Care</h3>
+                  <p className="text-[10px] text-amber-700 font-mono tracking-widest uppercase">Pinnacle of Aesthetic Dental Care</p>
+                </div>
+                
+                <div className="space-y-5 text-xs sm:text-sm text-gray-600">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-55/10 rounded-xl text-amber-700">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-serif font-bold text-emerald-950 text-sm">Clinic Address</p>
+                      <p className="mt-1 leading-relaxed text-xs sm:text-sm text-gray-500">
+                        Shop No:-51, Building No:22,<br />
+                        near Shiv Sena Shaka, Mankhurd (W),<br />
+                        PMG COLONY, Mumbai, Maharashtra 400043
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-55/10 rounded-xl text-amber-700">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-serif font-bold text-emerald-950 text-sm">Consulting Hours</p>
+                      <p className="mt-1 leading-relaxed text-xs sm:text-sm text-gray-500">
+                        Monday - Saturday: 10:00 AM - 08:00 PM<br />
+                        Sunday: By Appointment Only
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-55/10 rounded-xl text-amber-700">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-serif font-bold text-emerald-950 text-sm">Direct Desk Phone</p>
+                      <p className="mt-1 leading-relaxed font-mono text-xs sm:text-sm text-gray-500">
+                        +91 98765 43210
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100">
+                <a 
+                  href="https://maps.google.com/?q=UNIQUE+DENTAL+CARE+Mumbai" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="w-full text-center inline-block bg-emerald-950 text-white hover:bg-amber-800 text-xs font-serif font-bold tracking-widest uppercase py-4 px-4 rounded-xl shadow-md hover:shadow-lg transition-colors duration-200"
+                >
+                  Get Directions in Google Maps
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
       <section id="serenity-gallery" className="py-24 px-4 md:px-8 bg-white border-t border-b border-gray-50">
         <div className="max-w-7xl mx-auto space-y-12">
           

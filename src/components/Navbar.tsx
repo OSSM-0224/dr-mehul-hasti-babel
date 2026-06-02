@@ -3,68 +3,63 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  RootState,
-  setPath,
-  toggleMobileMenu,
-  toggleAuthModal,
-  logout,
-  showToast,
-} from "../store";
-import { Menu, X, User, LogOut, Calendar, ShieldCheck } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import logo from "/assets/uniquedentalcare.png";
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, setPath, toggleMobileMenu, toggleAuthModal, logout, showToast } from '../store';
+import { Menu, X, User, LogOut, Calendar, ShieldCheck } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import ClinicLogo from './ClinicLogo';
 
 export default function Navbar() {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { activePath, mobileMenuOpen } = useSelector(
-    (state: RootState) => state.ui,
-  );
+  const { activePath, mobileMenuOpen } = useSelector((state: RootState) => state.ui);
 
   const handleNav = (path: string) => {
     dispatch(setPath(path));
     dispatch(toggleMobileMenu(false));
-
+    
     // Smooth scroll if they Click on marketing layout elements on home
-    if (activePath === "home" && ["why-us", "faqs"].includes(path)) {
+    if (activePath === 'home' && ['why-us', 'faqs'].includes(path)) {
       const element = document.getElementById(path);
       if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
+        element.scrollIntoView({ behavior: 'smooth' });
       }
     }
   };
 
   const menuItems = [
-    { label: "Clinic", path: "home" },
-    { label: "Services", path: "services" },
-    { label: "Why Us", path: "about" },
-    { label: "Gallery", path: "gallery" },
-    { label: "FAQs", path: "faqs" },
+    { label: 'Clinic', path: 'home' },
+    { label: 'Services', path: 'services' },
+    { label: 'Why Us', path: 'about' },
+    { label: 'Gallery', path: 'gallery' },
+    { label: 'FAQs', path: 'faqs' }
+  ];
+
+  const adminMenuItems = [
+    { label: 'Admin Panel', path: 'admin/dashboard' },
+    { label: 'Scheduler Matrix', path: 'admin/appointments' },
+    { label: 'Patient Registry', path: 'admin/patients' },
+    { label: 'Billing Suite', path: 'admin/billing' }
   ];
 
   const handleBookClick = () => {
     if (user) {
-      dispatch(setPath("patient/appointments"));
+      if (user.isAdmin) {
+        dispatch(setPath('admin/dashboard'));
+      } else {
+        dispatch(setPath('patient/appointments'));
+      }
     } else {
       // Prompt user to sign in first, or scroll them to home page form
-      const element = document.getElementById("book-section");
+      const element = document.getElementById('book-section');
       if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-        dispatch(
-          showToast({
-            message: "Please scroll to the reservation form below!",
-            type: "success",
-          }),
-        );
+        element.scrollIntoView({ behavior: 'smooth' });
+        dispatch(showToast({ message: 'Please scroll to the reservation form below!', type: 'success' }));
       } else {
-        dispatch(setPath("home"));
+        dispatch(setPath('home'));
         setTimeout(() => {
-          document
-            .getElementById("book-section")
-            ?.scrollIntoView({ behavior: "smooth" });
+          document.getElementById('book-section')?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       }
     }
@@ -72,83 +67,65 @@ export default function Navbar() {
 
   const handleLogout = () => {
     dispatch(logout());
-    dispatch(setPath("home"));
-    dispatch(
-      showToast({
-        message: "Successfully signed out from your patient portal.",
-        type: "success",
-      }),
-    );
+    dispatch(setPath('home'));
+    dispatch(showToast({ message: 'Successfully logged out of secure console.', type: 'success' }));
   };
 
   return (
     <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
-      <div
-        id="navbar-container"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-      >
-        <div
-          id="navbar-flex"
-          className="flex justify-between items-center h-24"
-        >
+      <div id="navbar-container" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div id="navbar-flex" className="flex justify-between items-center h-20">
+          
           {/* Logo Brand Brandings */}
-          <div
-            id="brand-logo"
-            className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => handleNav("home")}
+          <div 
+            id="brand-logo" 
+            className="flex items-center gap-3.5 cursor-pointer group py-1"
+            onClick={() => handleNav(user?.isAdmin ? 'admin/dashboard' : 'home')}
           >
-            {/* Logo */}
-            <div className="flex items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 shadow-md p-2 group-hover:shadow-lg transition-all duration-300">
-              <img
-                src={logo}
-                alt="Unique Dental Care"
-                className="w-16 h-16 object-contain scale-[1.25] drop-shadow-md transition-transform duration-300 group-hover:scale-[1.35]"
-              />
+            {/* 2. Premium Clinic Logo in Header */}
+            <div className="p-1 sm:p-1.5 bg-emerald-50 rounded-xl group-hover:bg-amber-50 transition-colors duration-300">
+              <ClinicLogo size={42} className="w-9 h-9 sm:w-11 sm:h-11 text-emerald-950" />
             </div>
 
+            {/* 3. Title Content (Aligning the image/logo near the website title text) */}
             <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-serif font-semibold tracking-tight text-emerald-950 group-hover:text-amber-800 transition-colors">
-                Dr. Mehul Hasti Babel
-              </span>
-
-              <span className="text-[10px] uppercase tracking-widest font-mono text-emerald-800 font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-amber-600 inline" />
-                MUHS Mumbai Dental Surgeon
+              <div className="flex items-center gap-1.5">
+                <span className="text-base sm:text-[22px] font-serif font-semibold tracking-tight text-emerald-950 group-hover:text-amber-800 transition-colors leading-tight">
+                  Dr. Mehul Hasti Babel
+                </span>
+                {/* Glowing status dot indicating the doctor of medicine is online/active */}
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mt-0.5 shrink-0" />
+              </div>
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-widest font-mono text-emerald-800 font-bold flex items-center gap-1 mt-0.5 sm:mt-1">
+                <ShieldCheck className="w-3" /> MUHS Mumbai Dental Surgeon
               </span>
             </div>
           </div>
 
           {/* Desktop Navigation Links */}
-          <div
-            id="desktop-nav-links"
-            className="hidden md:flex space-x-8 items-center"
-          >
-            {menuItems.map((item) => (
+          <div id="desktop-nav-links" className="hidden md:flex space-x-6 items-center">
+            {(user?.isAdmin ? adminMenuItems : menuItems).map((item) => (
               <button
                 id={`nav-${item.path}`}
                 key={item.label}
                 onClick={() => {
-                  if (item.path === "faqs") {
-                    if (activePath !== "home") {
-                      dispatch(setPath("home"));
+                  if (item.path === 'faqs') {
+                    if (activePath !== 'home') {
+                      dispatch(setPath('home'));
                       setTimeout(() => {
-                        document
-                          .getElementById("faqs")
-                          ?.scrollIntoView({ behavior: "smooth" });
+                        document.getElementById('faqs')?.scrollIntoView({ behavior: 'smooth' });
                       }, 100);
                     } else {
-                      document
-                        .getElementById("faqs")
-                        ?.scrollIntoView({ behavior: "smooth" });
+                      document.getElementById('faqs')?.scrollIntoView({ behavior: 'smooth' });
                     }
                   } else {
                     handleNav(item.path);
                   }
                 }}
-                className={`text-sm tracking-wide transition-all uppercase text-xs font-semibold py-2 px-1 border-b-2 ${
-                  activePath === item.path
-                    ? "border-amber-700 text-emerald-950 font-bold"
-                    : "border-transparent text-emerald-800/80 hover:text-amber-800 hover:border-amber-600/30"
+                className={`text-sm tracking-wide transition-all uppercase text-[11px] font-semibold py-2 px-1 border-b-2 ${
+                  activePath === item.path 
+                    ? 'border-amber-700 text-emerald-950 font-bold' 
+                    : 'border-transparent text-emerald-800/80 hover:text-amber-850 hover:border-amber-600/30'
                 }`}
               >
                 {item.label}
@@ -157,60 +134,66 @@ export default function Navbar() {
 
             {/* Patients Portal Access Links */}
             {user ? (
-              <div
-                id="authorized-profile-pill"
-                className="flex items-center gap-4 pl-4 border-l border-gray-100"
-              >
+              <div id="authorized-profile-pill" className="flex items-center gap-4 pl-4 border-l border-gray-100">
                 <button
                   id="nav-to-dashboard"
-                  onClick={() => handleNav("patient/dashboard")}
-                  className={`text-xs font-mono font-bold tracking-tight px-3 py-1.5 rounded-full border flex items-center gap-1.5 transition-all ${
-                    activePath.startsWith("patient")
-                      ? "bg-emerald-900 border-emerald-950 text-white shadow-sm"
-                      : "bg-emerald-50 border-emerald-100 text-emerald-900 hover:bg-emerald-100"
+                  onClick={() => handleNav(user.isAdmin ? 'admin/dashboard' : 'patient/dashboard')}
+                  className={`text-xs font-mono font-bold tracking-tight px-3.5 py-1.5 rounded-full border flex items-center gap-1.5 transition-all ${
+                    user.isAdmin 
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 border-amber-800 text-white shadow-sm'
+                      : activePath.startsWith('patient')
+                      ? 'bg-emerald-900 border-emerald-950 text-white shadow-sm'
+                      : 'bg-emerald-50 border-emerald-100 text-emerald-900 hover:bg-emerald-100'
                   }`}
                 >
                   <User className="w-3.5 h-3.5" />
-                  {user.fullName.split(" ")[0]} (Portal)
+                  {user.fullName.split(' ')[0]} {user.isAdmin ? '(Dr. Babel)' : '(Portal)'}
                 </button>
                 <button
                   id="btn-logout"
                   onClick={handleLogout}
                   title="Sign Out"
-                  className="p-1.5 rounded-full text-gray-400 hover:text-red-700 hover:bg-red-50 transition-colors"
+                  className="p-1.5 rounded-full text-gray-400 hover:text-red-750 hover:bg-red-50/50 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <button
-                id="btn-open-portal"
-                onClick={() => dispatch(toggleAuthModal(true))}
-                className="text-xs uppercase font-serif font-bold tracking-wider text-emerald-900 hover:text-amber-800 transition-colors pl-4 border-l border-gray-100"
-              >
-                Patient Log In
-              </button>
+              <div className="flex items-center gap-4 pl-4 border-l border-gray-100 font-serif">
+                <button
+                  id="btn-open-portal"
+                  onClick={() => dispatch(toggleAuthModal(true))}
+                  className="text-xs uppercase font-serif font-bold tracking-wider text-emerald-900 hover:text-amber-800 transition-colors cursor-pointer"
+                >
+                  Patient Log In
+                </button>
+                <button
+                  onClick={() => dispatch(setPath('admin/login'))}
+                  className="text-xs uppercase font-serif font-bold tracking-wider text-amber-700 hover:text-amber-800 transition-colors cursor-pointer"
+                >
+                  Staff Hub
+                </button>
+              </div>
             )}
 
             {/* Main Book Button */}
-            <button
-              id="header-book-appointment"
-              onClick={handleBookClick}
-              className="bg-emerald-950 text-white font-serif uppercase tracking-wider text-xs px-5 py-3 hover:bg-amber-900 shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 font-medium"
-            >
-              Book Appointment
-            </button>
+            {!user?.isAdmin && (
+              <button
+                id="header-book-appointment"
+                onClick={handleBookClick}
+                className="bg-emerald-950 text-white font-serif uppercase tracking-wider text-xs px-5 py-3 hover:bg-amber-900 shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 font-medium cursor-pointer"
+              >
+                Book Appointment
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
-          <div
-            id="mobile-nav-toggle-block"
-            className="md:hidden flex items-center gap-3"
-          >
+          <div id="mobile-nav-toggle-block" className="md:hidden flex items-center gap-3">
             {user && (
               <button
                 id="mobile-portal-indicator"
-                onClick={() => handleNav("patient/dashboard")}
+                onClick={() => handleNav('patient/dashboard')}
                 className="p-1.5 rounded-full bg-emerald-50 text-emerald-900"
               >
                 <User className="w-4 h-4" />
@@ -221,21 +204,18 @@ export default function Navbar() {
               onClick={() => dispatch(toggleMobileMenu())}
               className="p-2 rounded-md text-emerald-950 hover:text-amber-800 hover:bg-emerald-50/50 transition-colors"
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
+
         </div>
       </div>
 
       {/* Mobile Drawer */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            id="mobile-drawer-overlay"
+          <motion.div 
+            id="mobile-drawer-overlay" 
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -248,22 +228,20 @@ export default function Navbar() {
                   id={`mob-nav-${item.path}`}
                   key={item.label}
                   onClick={() => {
-                    if (item.path === "faqs") {
-                      dispatch(setPath("home"));
+                    if (item.path === 'faqs') {
+                      dispatch(setPath('home'));
                       dispatch(toggleMobileMenu(false));
                       setTimeout(() => {
-                        document
-                          .getElementById("faqs")
-                          ?.scrollIntoView({ behavior: "smooth" });
+                        document.getElementById('faqs')?.scrollIntoView({ behavior: 'smooth' });
                       }, 100);
                     } else {
                       handleNav(item.path);
                     }
                   }}
                   className={`block w-full text-left px-3 py-2.5 rounded-md text-sm font-medium tracking-wide ${
-                    activePath === item.path
-                      ? "bg-emerald-50 text-emerald-950 font-bold"
-                      : "text-emerald-800/80 hover:bg-gray-50"
+                    activePath === item.path 
+                      ? 'bg-emerald-50 text-emerald-950 font-bold' 
+                      : 'text-emerald-800/80 hover:bg-gray-50'
                   }`}
                 >
                   {item.label}
@@ -275,7 +253,7 @@ export default function Navbar() {
                   <>
                     <button
                       id="mobile-nav-dashboard"
-                      onClick={() => handleNav("patient/dashboard")}
+                      onClick={() => handleNav('patient/dashboard')}
                       className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm font-medium text-emerald-950 hover:bg-gray-50"
                     >
                       <User className="w-4 h-4" /> Patient Dashboard

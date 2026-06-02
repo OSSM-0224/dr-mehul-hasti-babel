@@ -17,6 +17,7 @@ export interface Appointment {
 
 export interface DentalRecord {
   id: string;
+  patientId: string; // Associated patient ID
   date: string;
   treatmentType: string;
   toothNumbers: string[];
@@ -28,6 +29,22 @@ export interface DentalRecord {
   };
   doctorName: string;
   cost: number;
+}
+
+export interface Invoice {
+  id: string;
+  patientId: string;
+  patientName: string;
+  date: string;
+  items: {
+    description: string;
+    cost: number;
+  }[];
+  subtotal: number;
+  tax: number;
+  discount: number;
+  total: number;
+  status: 'paid' | 'pending' | 'overdue';
 }
 
 export interface FAQItem {
@@ -54,4 +71,5 @@ export interface UserProfile {
   gender: string;
   patientId: string; // e.g. "BABEL-2026-1049"
   registeredAt: string;
+  isAdmin?: boolean;
 }

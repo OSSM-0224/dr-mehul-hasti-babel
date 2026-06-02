@@ -98,7 +98,10 @@ export default function AuthModal() {
                 <X className="w-5 h-5" />
               </button>
               <div className="flex items-center gap-2 mb-1">
-
+                <KeyRound className="w-5 h-5 text-amber-500" />
+                <span className="text-xs font-mono tracking-widest uppercase text-amber-500 font-bold">
+                  Secure Patient Portal
+                </span>
               </div>
               <h2 className="font-serif text-xl font-bold tracking-tight">
                 Patient Log In & Files
@@ -192,7 +195,7 @@ export default function AuthModal() {
 
               <div className="mt-4 text-center">
                 <span className="text-[10px] text-gray-400 font-mono flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600 inline" /> Fully HIPAA & MUHS Certified clinical storage
+                  <ShieldCheck className="w-3 h-3 text-emerald-600 inline" /> Fully HIPAA & MUHS compliant clinical storage
                 </span>
               </div>
 
