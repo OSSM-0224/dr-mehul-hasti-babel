@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Appointment } from '../../types';
+import CustomSelect from '../../components/CustomSelect';
 
 interface NewSlotInputs {
   patientName: string;
@@ -37,6 +38,7 @@ export default function AdminAppointments() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<NewSlotInputs>({
     defaultValues: {
@@ -362,23 +364,26 @@ export default function AdminAppointments() {
                       />
                     </div>
 
-                    {/* Time */}
+                     {/* Time */}
                     <div className="space-y-1">
                       <label className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-950">
                         Hour slot
                       </label>
-                      <select
-                        className="block w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50 focus:outline-none"
-                        {...register('time')}
-                      >
-                        <option value="10:00 AM">10:00 AM</option>
-                        <option value="11:00 AM">11:00 AM</option>
-                        <option value="12:30 PM">12:30 PM</option>
-                        <option value="02:00 PM">02:00 PM</option>
-                        <option value="03:30 PM">03:30 PM</option>
-                        <option value="04:30 PM">04:30 PM</option>
-                        <option value="05:00 PM">05:00 PM</option>
-                      </select>
+                      <input type="hidden" {...register('time')} />
+                      <CustomSelect
+                        value={watch('time') || '11:00 AM'}
+                        onChange={(val) => setValue('time', val, { shouldValidate: true })}
+                        placeholder="Choose time..."
+                        options={[
+                          '10:00 AM',
+                          '11:00 AM',
+                          '12:30 PM',
+                          '02:00 PM',
+                          '03:30 PM',
+                          '04:30 PM',
+                          '05:00 PM'
+                        ]}
+                      />
                     </div>
                   </div>
 
@@ -387,14 +392,13 @@ export default function AdminAppointments() {
                     <label className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-950">
                       Primary treatment target
                     </label>
-                    <select
-                      className="block w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50 focus:outline-none"
-                      {...register('treatment')}
-                    >
-                      {treatmentOptions.map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
+                    <input type="hidden" {...register('treatment')} />
+                    <CustomSelect
+                      value={watch('treatment') || 'Smile Designing Suite'}
+                      onChange={(val) => setValue('treatment', val, { shouldValidate: true })}
+                      placeholder="Choose treatment..."
+                      options={treatmentOptions}
+                    />
                   </div>
 
                   {/* Notes */}

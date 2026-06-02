@@ -10,6 +10,7 @@ import { RootState, addLocalAppointment, cancelAppointmentThunk, showToast, setP
 import { Calendar, Trash2, CheckCircle2, ChevronRight, LockKeyhole, Plus, HelpCircle, User } from 'lucide-react';
 import { Appointment } from '../../types';
 import { motion, AnimatePresence } from 'motion/react';
+import CustomSelect from '../../components/CustomSelect';
 
 interface BookSlotForm {
   treatment: string;
@@ -23,7 +24,7 @@ export default function Appointments() {
   const { user } = useSelector((state: RootState) => state.auth);
   const { list: appointments } = useSelector((state: RootState) => state.appointments);
 
-  const { register, handleSubmit, reset } = useForm<BookSlotForm>();
+  const { register, handleSubmit, reset, setValue, watch } = useForm<BookSlotForm>();
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
 
   if (!user) {
@@ -140,16 +141,18 @@ export default function Appointments() {
                 <label className="block text-[10px] uppercase font-mono tracking-wider text-gray-400 mb-1.5">
                   Select Treatment
                 </label>
-                <select 
-                  id="slot-treatment"
-                  {...register("treatment", { required: true })}
-                  className="block w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50/50"
-                >
-                  <option value="Smile Designing">Smile Designing Veneer Fitting</option>
-                  <option value="Implant Setup">CBCT Guided Dental Implant</option>
-                  <option value="Hygiene Polish">6 Step Cavitation Prophylaxis</option>
-                  <option value="Painless Root Canal">Rotary Root Canal Sitting</option>
-                </select>
+                <input type="hidden" {...register("treatment", { required: true })} />
+                <CustomSelect
+                  value={watch("treatment") || ""}
+                  onChange={(val) => setValue("treatment", val, { shouldValidate: true })}
+                  placeholder="Choose treatment..."
+                  options={[
+                    { value: "Smile Designing", label: "Smile Designing Veneer Fitting" },
+                    { value: "Implant Setup", label: "CBCT Guided Dental Implant" },
+                    { value: "Hygiene Polish", label: "6 Step Cavitation Prophylaxis" },
+                    { value: "Painless Root Canal", label: "Rotary Root Canal Sitting" }
+                  ]}
+                />
               </div>
 
               {/* Target Date selection */}
@@ -171,16 +174,18 @@ export default function Appointments() {
                 <label className="block text-[10px] uppercase font-mono tracking-wider text-gray-400 mb-1.5">
                   Hour Slot
                 </label>
-                <select 
-                  id="slot-timeHour"
-                  {...register("timeSlot", { required: true })}
-                  className="block w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50/50"
-                >
-                  <option value="10:00 AM">10:00 AM - Premium Morning</option>
-                  <option value="11:30 AM">11:30 AM - Clinical Midday</option>
-                  <option value="03:00 PM">03:00 PM - Afternoon Slot</option>
-                  <option value="05:30 PM">05:30 PM - High-Floor Sunset</option>
-                </select>
+                <input type="hidden" {...register("timeSlot", { required: true })} />
+                <CustomSelect
+                  value={watch("timeSlot") || ""}
+                  onChange={(val) => setValue("timeSlot", val, { shouldValidate: true })}
+                  placeholder="Choose hour slot..."
+                  options={[
+                    { value: "10:00 AM", label: "10:00 AM - Premium Morning" },
+                    { value: "11:30 AM", label: "11:30 AM - Clinical Midday" },
+                    { value: "03:00 PM", label: "03:00 PM - Afternoon Slot" },
+                    { value: "05:30 PM", label: "05:30 PM - High-Floor Sunset" }
+                  ]}
+                />
               </div>
 
               {/* Optional comments notes */}

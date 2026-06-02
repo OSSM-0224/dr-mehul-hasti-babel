@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Invoice } from '../../types';
+import CustomSelect from '../../components/CustomSelect';
 
 interface NewInvoiceInputs {
   patientId: string;
@@ -193,14 +194,13 @@ export default function AdminBilling() {
                     <label className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-950">
                       Select Patient
                     </label>
-                    <select
-                      className="block w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50/50 focus:outline-none focus:ring-1 focus:ring-emerald-800"
-                      {...register('patientId', { required: 'Patient file association required' })}
-                    >
-                      {patients.map(p => (
-                        <option key={p.patientId} value={p.patientId}>{p.fullName} ({p.patientId})</option>
-                      ))}
-                    </select>
+                    <input type="hidden" {...register('patientId', { required: 'Patient file association required' })} />
+                    <CustomSelect
+                      value={watchedPatientId || ''}
+                      onChange={(val) => setValue('patientId', val, { shouldValidate: true })}
+                      placeholder="Select Patient..."
+                      options={patients.map(p => ({ value: p.patientId, label: `${p.fullName} (${p.patientId})` }))}
+                    />
                   </div>
 
                   {/* Item Description */}

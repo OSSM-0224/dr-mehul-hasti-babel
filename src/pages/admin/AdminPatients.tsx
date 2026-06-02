@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { DentalRecord, UserProfile, Invoice } from '../../types';
 import Dental3DReference from '../../components/Dental3DReference';
+import CustomSelect from '../../components/CustomSelect';
 
 const TREATMENT_PRICES: Record<string, number> = {
   'Intraoral 3D Smile Mapping': 15000,
@@ -57,6 +58,8 @@ export default function AdminPatients() {
     register: registerPatient,
     handleSubmit: handlePatientSubmit,
     reset: resetPatient,
+    setValue: setPatientValue,
+    watch: watchPatient,
     formState: { errors: patientErrors }
   } = useForm<NewPatientInputs>({
     defaultValues: {
@@ -355,17 +358,18 @@ export default function AdminPatients() {
 
                       <form onSubmit={handleRecordSubmit(onRecordSubmit)} className="space-y-4">
                         <div className="space-y-1">
-                          <label className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-950">
-                            Procedure Type
-                          </label>
-                          <select
-                            className="block w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50/50"
-                            {...registerRecord('treatmentType')}
-                          >
-                            {treatmentOptions.map(opt => (
-                              <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                          </select>
+                          <div className="space-y-1">
+                            <label className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-950">
+                              Procedure Type
+                            </label>
+                            <input type="hidden" {...registerRecord('treatmentType')} />
+                            <CustomSelect
+                              value={watchRecord('treatmentType') || 'Intraoral 3D Smile Mapping'}
+                              onChange={(val) => setRecordValue('treatmentType', val, { shouldValidate: true })}
+                              placeholder="Choose procedure..."
+                              options={treatmentOptions}
+                            />
+                          </div>
                         </div>
 
                         <div className="space-y-1">
@@ -395,14 +399,17 @@ export default function AdminPatients() {
                             <label className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-950">
                               Attachment Type
                             </label>
-                            <select
-                              className="block w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50/50 focus:outline-none"
-                              {...registerRecord('attachmentType')}
-                            >
-                              <option value="X-Ray">Radiograph X-Ray</option>
-                              <option value="3D Scan">Intraoral 3D Scan</option>
-                              <option value="Photo">Aesthetic Photo</option>
-                            </select>
+                            <input type="hidden" {...registerRecord('attachmentType')} />
+                            <CustomSelect
+                              value={watchRecord('attachmentType') || 'X-Ray'}
+                              onChange={(val) => setRecordValue('attachmentType', val as 'X-Ray' | '3D Scan' | 'Photo', { shouldValidate: true })}
+                              placeholder="Choose attachment..."
+                              options={[
+                                { value: "X-Ray", label: "Radiograph X-Ray" },
+                                { value: "3D Scan", label: "Intraoral 3D Scan" },
+                                { value: "Photo", label: "Aesthetic Photo" }
+                              ]}
+                            />
                           </div>
                         </div>
 
@@ -562,14 +569,17 @@ export default function AdminPatients() {
                     <label className="text-xs uppercase font-mono tracking-wider font-bold text-emerald-950">
                       Gender Identity
                     </label>
-                    <select
-                      className="block w-full border border-gray-200 rounded-xl px-3 py-2 text-xs bg-gray-50/50"
-                      {...registerPatient('gender')}
-                    >
-                      <option value="Female">Female</option>
-                      <option value="Male">Male</option>
-                      <option value="Other">Other</option>
-                    </select>
+                    <input type="hidden" {...registerPatient('gender')} />
+                    <CustomSelect
+                      value={watchPatient('gender') || 'Female'}
+                      onChange={(val) => setPatientValue('gender', val)}
+                      placeholder="Choose gender..."
+                      options={[
+                        { value: 'Female', label: 'Female' },
+                        { value: 'Male', label: 'Male' },
+                        { value: 'Other', label: 'Other' }
+                      ]}
+                    />
                   </div>
 
                   <div className="pt-2 border-t flex justify-end gap-3 font-mono">
