@@ -7,7 +7,7 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { setPath } from '../store';
 import { Globe, Share2, Instagram, Phone, Mail, MapPin, Clock } from 'lucide-react';
-import ClinicLogo from './ClinicLogo';
+import clinicLogo from "/assets/uniquedentalcare.png";
 
 export default function Footer() {
   const dispatch = useDispatch();
@@ -26,7 +26,11 @@ export default function Footer() {
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="p-1 bg-emerald-950 rounded-lg border border-emerald-900">
-                <ClinicLogo size={32} className="w-8 h-8 text-amber-500" />
+                <img
+                src={clinicLogo}
+                alt="Unique Dental Care Logo"
+                className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow-sm"
+              />
               </div>
               <h3 className="font-serif text-xl tracking-tight text-white font-semibold">
                 Dr. Mehul Hasti Babel
