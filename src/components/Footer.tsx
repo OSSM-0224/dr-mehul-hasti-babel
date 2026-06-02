@@ -151,13 +151,13 @@ export default function Footer() {
               />
 
               {/* DARK LUXURY OVERLAY */}
-<div className="absolute inset-0 bg-[#021F17]/40 backdrop-blur-[1px] pointer-events-none" />
+              <div className="absolute inset-0 bg-[#021F17]/40 backdrop-blur-[1px] pointer-events-none" />
 
-{/* Luxury Emerald Glow */}
-<div className="absolute -top-12 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
+              {/* Luxury Emerald Glow */}
+              <div className="absolute -top-12 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
 
-{/* Premium Grid */}
-<div className="absolute inset-0 opacity-20 bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:18px_18px] pointer-events-none" />
+              {/* Premium Grid */}
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:18px_18px] pointer-events-none" />
 
               {/* Luxury Animated Map Lines */}
               <svg
