@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { DentalRecord, UserProfile, Invoice } from '../../types';
 import Dental3DReference from '../../components/Dental3DReference';
 import CustomSelect from '../../components/CustomSelect';
+import Dental3DViewer from '@/src/components/Dental3DViewer';
 
 const TREATMENT_PRICES: Record<string, number> = {
   'Intraoral 3D Smile Mapping': 15000,
@@ -339,7 +340,7 @@ export default function AdminPatients() {
                   {/* VISUAL INTERACTIVE DENTAL CHART */}
                   <div className="flex justify-center mb-8">
                     <div className="w-full max-w-2xl">
-                      <Dental3DReference 
+                      <Dental3DViewer 
                         selectedTeeth={selectedTeeth} 
                         onToggleTooth={handleToggleTooth} 
                       />
