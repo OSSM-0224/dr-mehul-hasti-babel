@@ -1,6 +1,6 @@
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 
 interface Dental3DViewerProps {
@@ -8,7 +8,6 @@ interface Dental3DViewerProps {
   onToggleTooth: (idx: string) => void;
 }
 
-// Tooth name → display number mapping
 const TOOTH_NUMBER_MAP: Record<string, string> = {
   teeth001: '1',  teeth002: '2',  teeth003: '3',  teeth004: '4',
   teeth005: '5',  teeth006: '6',  teeth007: '7',  teeth008: '8',
@@ -19,167 +18,225 @@ const TOOTH_NUMBER_MAP: Record<string, string> = {
   teeth025: '25', teeth026: '26', teeth027: '27',
 };
 
-interface ToothLabel {
-  name: string
-  x: number
-  y: number
+// Pre-check once: is this object a tooth?
+function isToothObject(name: string) {
+  const n = name.toLowerCase();
+  return !n.includes('mouth') && !n.includes('wet') && !n.includes('gum');
 }
 
-function TeethModel({ selectedTeeth, onToggleTooth, onLabelsUpdate }: Dental3DViewerProps & {
-  onLabelsUpdate: (labels: ToothLabel[]) => void
-}) {
+interface ToothLabel {
+  name: string;
+  x: number;
+  y: number;
+}
+
+function TeethModel({
+  selectedTeeth,
+  onToggleTooth,
+  onLabelsUpdate,
+}: Dental3DViewerProps & { onLabelsUpdate: (labels: ToothLabel[]) => void }) {
   const { scene } = useGLTF("/models/teeth1.glb");
   const { camera, gl, size } = useThree();
-  const materialsRef = useRef<Map<string, THREE.Material | THREE.Material[]>>(new Map());
-  const frameRef = useRef<number>(0);
 
-  // Save original materials ONCE
-  useEffect(() => {
-    scene.traverse((obj) => {
-      const mesh = obj as THREE.Mesh;
-      if (mesh.isMesh && !materialsRef.current.has(mesh.uuid)) {
-        if (Array.isArray(mesh.material)) {
-          materialsRef.current.set(mesh.uuid, mesh.material.map(m => m.clone()));
-        } else {
-          materialsRef.current.set(mesh.uuid, mesh.material.clone());
-        }
-      }
-    });
-  }, [scene]);
+  // Store original materials once, keyed by uuid
+  const originalsRef = useRef<Map<string, THREE.Material | THREE.Material[]>>(new Map());
 
-  // Update label positions every frame (follows camera rotation)
-  useEffect(() => {
-    const updateLabels = () => {
-      const labels: ToothLabel[] = [];
+  // Pre-built highlight materials keyed by uuid (avoid re-cloning every render)
+  const highlightRef = useRef<Map<string, THREE.Material | THREE.Material[]>>(new Map());
 
-      scene.traverse((obj) => {
-        if (!obj.name) return;
-        const name = obj.name.toLowerCase();
-        if (name.includes('mouth') || name.includes('wet') || name.includes('gum')) return;
-        if (!TOOTH_NUMBER_MAP[obj.name] && !TOOTH_NUMBER_MAP[obj.name?.toLowerCase()]) return;
+  // Raycaster created once
+  const raycasterRef = useRef(new THREE.Raycaster());
 
-        // Get world position of tooth center
-        const worldPos = new THREE.Vector3();
-        obj.getWorldPosition(worldPos);
+  // Track whether camera is moving — only update labels when it is
+  const isDirtyRef = useRef(true);
 
-        // Project 3D → 2D screen coords
-        const projected = worldPos.clone().project(camera);
-        const x = (projected.x * 0.5 + 0.5) * size.width;
-        const y = (-projected.y * 0.5 + 0.5) * size.height;
-
-        // Only show if in front of camera
-        if (projected.z < 1) {
-          labels.push({ name: obj.name, x, y });
-        }
-      });
-
-      onLabelsUpdate(labels);
-      frameRef.current = requestAnimationFrame(updateLabels);
-    };
-
-    frameRef.current = requestAnimationFrame(updateLabels);
-    return () => cancelAnimationFrame(frameRef.current);
-  }, [scene, camera, size, onLabelsUpdate]);
-
-  // Raycasting click handler
-  useEffect(() => {
-    const handleClick = (event: MouseEvent) => {
-      const rect = gl.domElement.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
-        ((event.clientX - rect.left) / rect.width) * 2 - 1,
-        -((event.clientY - rect.top) / rect.height) * 2 + 1
-      );
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(scene.children, true);
-
-      if (intersects.length > 0) {
-        let obj: THREE.Object3D | null = intersects[0].object;
-        while (obj?.parent && obj.parent !== scene) {
-          obj = obj.parent;
-        }
-        if (!obj?.name) return;
-        const name = obj.name.toLowerCase();
-        if (name.includes('mouth') || name.includes('wet') || name.includes('gum')) return;
-        onToggleTooth(obj.name);
-      }
-    };
-
-    gl.domElement.addEventListener("click", handleClick);
-    return () => gl.domElement.removeEventListener("click", handleClick);
-  }, [scene, camera, gl, onToggleTooth]);
-
-  // Highlight selected teeth
+  // ── Save originals + pre-build highlights once on load ──────────────────
   useEffect(() => {
     scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
-      const original = materialsRef.current.get(mesh.uuid);
-      if (!original) return;
 
-      const parentName = (obj.parent?.name || "").toLowerCase();
-      const objName = obj.name.toLowerCase();
+      if (originalsRef.current.has(mesh.uuid)) return;
 
-      if (
-        objName.includes("mouth") || objName.includes("wet") || objName.includes("gum") ||
-        parentName.includes("mouth") || parentName.includes("wet") || parentName.includes("gum")
-      ) {
-        mesh.material = Array.isArray(original) ? original.map(m => m.clone()) : original.clone();
+      const cloneMat = (m: THREE.Material) => m.clone();
+
+      const original = Array.isArray(mesh.material)
+        ? mesh.material.map(cloneMat)
+        : cloneMat(mesh.material);
+
+      originalsRef.current.set(mesh.uuid, original);
+
+      // Pre-build highlight variant
+      const makeHighlight = (m: THREE.Material) => {
+        const h = m.clone() as THREE.MeshStandardMaterial;
+        h.emissive = new THREE.Color("#FFD700");
+        h.emissiveIntensity = 0.7;
+        return h;
+      };
+
+      const highlight = Array.isArray(original)
+        ? original.map(makeHighlight)
+        : makeHighlight(original as THREE.Material);
+
+      highlightRef.current.set(mesh.uuid, highlight);
+    });
+  }, [scene]);
+
+  // ── Apply highlights only when selectedTeeth changes ─────────────────────
+  useEffect(() => {
+    scene.traverse((obj) => {
+      const mesh = obj as THREE.Mesh;
+      if (!mesh.isMesh) return;
+
+      const objName = obj.name;
+      const parentName = obj.parent?.name || "";
+
+      // Skip non-teeth
+      if (!isToothObject(objName) || !isToothObject(parentName)) {
+        const original = originalsRef.current.get(mesh.uuid);
+        if (original) {
+          mesh.material = Array.isArray(original)
+            ? original // no need to clone — not mutated
+            : original;
+        }
         return;
       }
 
       const isSelected =
-        selectedTeeth.includes(obj.name) ||
-        selectedTeeth.includes(obj.parent?.name || "");
+        selectedTeeth.includes(objName) || selectedTeeth.includes(parentName);
 
-      if (isSelected) {
-        const applyHighlight = (m: THREE.Material) => {
-          const c = m.clone() as THREE.MeshStandardMaterial;
-          c.emissive = new THREE.Color("#FFD700");
-          c.emissiveIntensity = 0.7;
-          return c;
-        };
-        mesh.material = Array.isArray(original)
-          ? original.map(applyHighlight)
-          : applyHighlight(original as THREE.Material);
-      } else {
-        mesh.material = Array.isArray(original)
-          ? original.map(m => m.clone())
-          : original.clone();
-      }
+      const original = originalsRef.current.get(mesh.uuid);
+      const highlight = highlightRef.current.get(mesh.uuid);
+      if (!original || !highlight) return;
+
+      // Just swap the pre-built reference — zero cloning
+      mesh.material = isSelected ? highlight : original;
     });
   }, [scene, selectedTeeth]);
+
+  // ── Update labels only when camera moves (useFrame + dirty flag) ─────────
+  useFrame(() => {
+    if (!isDirtyRef.current) return;
+    isDirtyRef.current = false;
+
+    const labels: ToothLabel[] = [];
+    const projected = new THREE.Vector3();
+
+    scene.traverse((obj) => {
+      if (!TOOTH_NUMBER_MAP[obj.name]) return;
+
+      obj.getWorldPosition(projected);
+      projected.project(camera);
+
+      if (projected.z >= 1) return; // behind camera
+
+      labels.push({
+        name: obj.name,
+        x: (projected.x * 0.5 + 0.5) * size.width,
+        y: (-projected.y * 0.5 + 0.5) * size.height,
+      });
+    });
+
+    onLabelsUpdate(labels);
+  });
+
+  // ── Mark dirty when OrbitControls moves ──────────────────────────────────
+  useEffect(() => {
+    const markDirty = () => { isDirtyRef.current = true; };
+    gl.domElement.addEventListener("mousemove", markDirty);
+    gl.domElement.addEventListener("touchmove", markDirty);
+    // Also mark dirty once on mount so initial labels render
+    isDirtyRef.current = true;
+    return () => {
+      gl.domElement.removeEventListener("mousemove", markDirty);
+      gl.domElement.removeEventListener("touchmove", markDirty);
+    };
+  }, [gl]);
+
+  // ── Click / raycast ───────────────────────────────────────────────────────
+  const handleClick = useCallback((event: MouseEvent) => {
+    const rect = gl.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1
+    );
+
+    raycasterRef.current.setFromCamera(mouse, camera);
+    const intersects = raycasterRef.current.intersectObjects(scene.children, true);
+
+    if (intersects.length === 0) return;
+
+    let obj: THREE.Object3D | null = intersects[0].object;
+    while (obj?.parent && obj.parent !== scene) obj = obj.parent;
+
+    if (!obj?.name || !isToothObject(obj.name)) return;
+    onToggleTooth(obj.name);
+  }, [scene, camera, gl, onToggleTooth]);
+
+  useEffect(() => {
+    gl.domElement.addEventListener("click", handleClick);
+    return () => gl.domElement.removeEventListener("click", handleClick);
+  }, [gl, handleClick]);
+
+  // ── Cleanup on unmount ────────────────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      scene.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (mesh.isMesh) {
+          mesh.geometry?.dispose();
+        }
+      });
+      originalsRef.current.forEach((mat) => {
+        if (Array.isArray(mat)) mat.forEach(m => m.dispose());
+        else mat.dispose();
+      });
+      highlightRef.current.forEach((mat) => {
+        if (Array.isArray(mat)) mat.forEach(m => m.dispose());
+        else mat.dispose();
+      });
+    };
+  }, [scene]);
 
   return <primitive object={scene} />;
 }
 
+// Preload outside component so it starts before mount
+useGLTF.preload("/models/teeth1.glb");
+
 export default function Dental3DViewer({ selectedTeeth, onToggleTooth }: Dental3DViewerProps) {
   const [toothLabels, setToothLabels] = useState<ToothLabel[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Stable callback — won't cause TeethModel re-render
+  const handleLabelsUpdate = useCallback((labels: ToothLabel[]) => {
+    setToothLabels(labels);
+  }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: "100%", height: "400px", marginTop: "-100px", position: "relative" }}
-    >
-      <Canvas camera={{ position: [0, 0, 5], fov: 13 }} gl={{ antialias: true }}>
+    <div style={{ width: "100%", height: "400px", marginTop: "-100px", position: "relative" }}>
+      {/* frameloop="demand" — only renders when invalidated (OrbitControls does this automatically) */}
+      <Canvas
+        camera={{ position: [0, 0, 5], fov: 13 }}
+        gl={{ antialias: true }}
+        frameloop="demand"
+      >
         <ambientLight intensity={1} />
         <directionalLight position={[5, 0.5, 5]} intensity={1} />
         <Suspense fallback={null}>
           <TeethModel
             selectedTeeth={selectedTeeth}
             onToggleTooth={onToggleTooth}
-            onLabelsUpdate={setToothLabels}
+            onLabelsUpdate={handleLabelsUpdate}
           />
         </Suspense>
-        <OrbitControls enablePan={false} />
+        {/* makeDefault tells R3F to invalidate the frame on camera move — works with frameloop="demand" */}
+        <OrbitControls enablePan={false} makeDefault />
       </Canvas>
 
-      {/* HTML Number Labels — float over canvas */}
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
         {toothLabels.map((label) => {
           const isSelected = selectedTeeth.includes(label.name);
-          const num = TOOTH_NUMBER_MAP[label.name] || TOOTH_NUMBER_MAP[label.name?.toLowerCase()] || '';
+          const num = TOOTH_NUMBER_MAP[label.name] || '';
           if (!num) return null;
           return (
             <div
